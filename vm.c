@@ -337,6 +337,24 @@ copyuvm(pde_t *pgdir, uint sz)
       goto bad;
     }
   }
+
+  //new loop we need to put to look for every page
+  for(i = KERNBASE  - 2*PGSIZE; i < KERNBASE ; i += PGSIZE){
+    if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
+      panic("copyuvm: pte should exist");
+    if(!(*pte & PTE_P))
+      panic("copyuvm: page not present");
+    pa = PTE_ADDR(*pte);
+    flags = PTE_FLAGS(*pte);
+    if((mem = kalloc()) == 0)
+      goto bad;
+    memmove(mem, (char*)P2V(pa), PGSIZE);
+    if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0) {
+      kfree(mem);
+      goto bad;
+    }
+  }
+
   return d;
 
 bad:
