@@ -6,7 +6,7 @@
             "request": "attach",
             "name": "debug xv6",
             "executable": "kernel/kernel",
-            "target": ":25364",
+            "target": ":25962",
             "remote": true,
             "cwd": "${workspaceRoot}",
         }
