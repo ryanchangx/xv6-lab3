@@ -82,22 +82,20 @@ trap(struct trapframe *tf)
   case T_PGFLT:
     curproc = myproc();
     sc = curproc->stackcount;
-    cprintf("stackcount=%x\n", sc);
     pde_t *pgdir = curproc->pgdir;
     uint rc = rcr2();
-    uint m = PGROUNDUP(rc) - sc * PGSIZE, bottomofstack = (KERNBASE - 2* PGSIZE) - sc*PGSIZE, temp;
-    cprintf("\trc->m: %x %x\n", rc, m);
-    if((m == bottomofstack && m > curproc->sz) && sc <= 100){
-      if((temp = allocuvm(pgdir, bottomofstack - PGSIZE, bottomofstack)) != 0){
-        clearpteu(pgdir, (char*)(bottomofstack - PGSIZE));
-        curproc->stackcount += 1;
-        // curproc->tf->esp = bottomofstack;
-        // curproc->pgdir = pgdir;
-        cprintf("\tm=%x bstack=%x rc=%x\n", m, bottomofstack, rc);
-      }
+    uint m = PGROUNDUP(rc) - PGSIZE, bottomofstack = (KERNBASE - 2 * PGSIZE) - sc * PGSIZE;
+    cprintf("stackcount=%x\n", sc);
+    cprintf("\tm=%x bstack=%x rc=%x sz=%x pgsize=%x\n", m, bottomofstack, rc, curproc->sz, PGSIZE);
+    if(m == bottomofstack && m > curproc->sz){
+      unclearpteu(pgdir, (char*)(bottomofstack));
+      allocuvm(pgdir, bottomofstack - PGSIZE, bottomofstack);
+      clearpteu(pgdir, (char*)(bottomofstack - PGSIZE));
+      curproc->stackcount += 1;
+      // curproc->tf->esp = bottomofstack;
+      // curproc->pgdir = pgdir;
     }
     else{
-      cprintf("\tm=%x bstack=%x rc=%x sz=%x pgsize=%x\n", m, bottomofstack, rc, curproc->sz, PGSIZE);
       goto bad;
       exit();
     }
@@ -193,3 +191,15 @@ trap(struct trapframe *tf)
 //         rc->m: 7fff4000 7fff3000
 //         m=7fff3000 bstack=7fff3000 rc=7fff4000 sz=1000 pgsize=1000
 // pid 3 lab3: trap 14 err 7 on cpu 0 eip 0xe9 addr 0x7fff4000--kill proc
+
+
+//  unclearpteu: 80f17674 80f17674
+//  unclearpteu: 80f17670 80f17670
+//  unclearpteu: 80f1766c 80f1766c
+//  unclearpteu: 80f17668 80f17668
+//  unclearpteu: 80f17664 80f17664
+//  unclearpteu: 80f17660 80f17660
+//  unclearpteu: 80f1765c 80f1765c
+//  unclearpteu: 80f17658 80f17658
+//  unclearpteu: 80f17654 80f17654
+//  unclearpteu: 80f17650 80f17650
