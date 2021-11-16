@@ -307,8 +307,25 @@ clearpteu(pde_t *pgdir, char *uva)
   pte = walkpgdir(pgdir, uva, 0);
   if(pte == 0)
     panic("clearpteu");
+  
   *pte &= ~PTE_U;
 }
+
+void 
+unclearpteu(pde_t *pgdir, char *uva)
+{
+  pte_t *pte, *temp;
+  pte = walkpgdir(pgdir, uva, 0);
+  if(pte == 0)
+    panic("unclearpteu");
+  *temp = *pte;
+  *pte |= PTE_U;
+  cprintf("\t\tunclearpteu: %x %x\n", *temp, *pte);
+  if(*temp == *pte){
+    panic("unclearpteu");
+  }
+}
+
 
 // Given a parent process's page table, create a copy
 // of it for a child.
