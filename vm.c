@@ -315,6 +315,7 @@ clearpteu(pde_t *pgdir, char *uva)
 pde_t*
 copyuvm(pde_t *pgdir, uint sz)
 {
+  // cprintf("we made it %x\n", sz);
   pde_t *d;
   pte_t *pte;
   uint pa, i, flags;
@@ -339,11 +340,12 @@ copyuvm(pde_t *pgdir, uint sz)
   }
 
   //new loop we need to put to look for every page
-  for(i = KERNBASE  - 2*PGSIZE; i < KERNBASE ; i += PGSIZE){
+  for(i = KERNBASE - PGSIZE - 2 * PGSIZE; i < KERNBASE-PGSIZE; i += PGSIZE){
+    // cprintf("i: %x\n", i);
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
-      panic("copyuvm: pte should exist");
+      panic("copyuvm: pte should exist NEW");
     if(!(*pte & PTE_P))
-      panic("copyuvm: page not present");
+      panic("copyuvm: page not present NEW");
     pa = PTE_ADDR(*pte);
     flags = PTE_FLAGS(*pte);
     if((mem = kalloc()) == 0)
