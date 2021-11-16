@@ -36,6 +36,8 @@ idtinit(void)
 void
 trap(struct trapframe *tf)
 {
+  int sc;
+  struct proc* curproc;
   if(tf->trapno == T_SYSCALL){
     if(myproc()->killed)
       exit();
@@ -78,6 +80,22 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
 
+  //PAGE FAULT CODE CREATED:
+  case T_PGFLT:
+    curproc = myproc();
+    sc = curproc->stackcount;
+    cprintf("stackcount = %x \n", sc);
+    //we need to get the address that caused the page fault so we can grow our stack
+    uint reg = rcr2();
+    cprintf("Register Address = %x \n", reg);
+    uint botstack = (KERNBASE - 2*PGSIZE) - (sc*PGSIZE);
+    uint m = PGROUNDUP(reg) - sc*PGSIZE;
+    cprintf("Kernbase - pgsize: %x \n", botstack );
+    if ( m == botstack ){
+      cprintf("YO WHAT\n", 1);
+    }
+    
+    break;
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){
